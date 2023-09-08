@@ -11,27 +11,36 @@ import createStore from "./helpers/createStore";
 const port = process.env.PORT || 5000;
 
 const app = express();
-app.use('/api', proxy('https://react-ssr-api.herokuapp.com', {
+app.use('/api', proxy('http://react-ssr-api.herokuapp.com', {
     proxyReqOptDecorator(opts){
-        opts.headers['x-forwarded-host'] = 'localhost:3000';
+        opts.headers['x-forwarded-host'] = 'localhost:'+port;
         return opts;
     }
 }))
 app.use(express.static('public'));
-
-// app.get("/api", (req, res) => {
-//     res.send("API");
-// })
-
-
 app.get("*", (req, res) => {
     const store = createStore(req);
     const promises = matchRoutes(Routes, req.path).map(({route}) => {
         return route.loadData ? route.loadData(store) : null;
-    });
-    Promise.all(promises).then(() => {
-        res.send(renderer(req, store));
     })
+    .map((promise) => {
+        if(promise){
+            return new Promise((resolve, _) => {
+                promise.then(resolve).catch(resolve);
+            })
+        }
+    });
+
+    
+    Promise.all(promises).then(() => {
+        const context = {};
+        const content = renderer(req, store, context);
+        if(context.notFound){
+            res.status(404);
+        }
+        res.send(content);
+    })
+    // .catch((err) => res.status(err.response.status).send(err.response.data.error))
 })
 
 app.listen(port, () => {

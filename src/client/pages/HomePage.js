@@ -1,12 +1,13 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Home = () => {
-    return (<div>
-        <div>Home components</div>
-        <button onClick={() => console.log("Test")}>Test</button>
-        <Link to="/users">Test</Link>
-    </div>)
+    return (
+        <div className="center-align" style={{ marginTop: '200px' }}>
+            <h3>Welcome</h3>
+            <p>Check out these awesome features</p>
+        </div>
+    )
 }
 
-export default {component: Home};
+export default { component: Home };
